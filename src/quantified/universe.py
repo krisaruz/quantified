@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import datetime
 
+import numpy as np
 import pandas as pd
 from sqlalchemy.orm import Session
 
@@ -59,19 +60,22 @@ def build_universe(session: Session, trade_date: str) -> pd.DataFrame:
         "cb_close", "cb_volume", "stock_close", "is_st",
     ])
 
-    df["conversion_value"] = df.apply(
-        lambda r: r["stock_close"] / r["conv_price_latest"] * 100
-        if r["conv_price_latest"] and r["conv_price_latest"] > 0 and r["stock_close"] and r["stock_close"] > 0
-        else None,
-        axis=1,
+    valid = (
+        df["conv_price_latest"].notna() & (df["conv_price_latest"] > 0)
+        & df["stock_close"].notna() & (df["stock_close"] > 0)
     )
-    df["premium_rate"] = df.apply(
-        lambda r: (r["cb_close"] - r["conversion_value"]) / r["conversion_value"]
-        if r["conversion_value"] and r["conversion_value"] > 0
-        else None,
-        axis=1,
+    df["conversion_value"] = np.where(
+        valid,
+        100.0 / df["conv_price_latest"] * df["stock_close"],
+        np.nan,
     )
-    df["trade_available"] = df["cb_volume"].apply(lambda v: v is not None and v > 0)
+    cv_valid = valid & (df["conversion_value"] > 0)
+    df["premium_rate"] = np.where(
+        cv_valid,
+        df["cb_close"] / df["conversion_value"] - 1.0,
+        np.nan,
+    )
+    df["trade_available"] = df["cb_volume"].notna() & (df["cb_volume"] > 0)
 
     return df
 

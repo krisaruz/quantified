@@ -12,7 +12,7 @@ from dataclasses import dataclass, field
 
 import pandas as pd
 
-from quantified.config import AppConfig, rating_ge
+from quantified.config import AppConfig, RATING_ORDER, rating_ge
 
 logger = logging.getLogger(__name__)
 
@@ -60,6 +60,8 @@ def filter_remaining_years(
     result = df[df["_remaining_years"] >= config.filters.min_remaining_years]
     return result.drop(columns=["_remaining_years"])
 
+filter_remaining_years._date_aware = True
+
 
 def filter_max_price(df: pd.DataFrame, config: AppConfig) -> pd.DataFrame:
     if "cb_close" not in df.columns:
@@ -71,7 +73,8 @@ def filter_credit_rating(df: pd.DataFrame, config: AppConfig) -> pd.DataFrame:
     if "credit_rating" not in df.columns:
         return df
     min_r = config.filters.min_credit_rating
-    return df[df["credit_rating"].apply(lambda r: rating_ge(r, min_r))]
+    valid_ratings = set(RATING_ORDER[: RATING_ORDER.index(min_r) + 1])
+    return df[df["credit_rating"].isin(valid_ratings)]
 
 
 def filter_redeeming(df: pd.DataFrame, config: AppConfig) -> pd.DataFrame:
@@ -114,8 +117,6 @@ ALL_FILTERS = [
     ("排除流动性不足", filter_min_turnover),
 ]
 
-_DATE_AWARE_FILTERS = {"filter_remaining_years"}
-
 
 class FilterChain:
     """可配置过滤器链"""
@@ -135,7 +136,7 @@ class FilterChain:
             before = len(result)
             before_codes = set(result[cb_code_col]) if cb_code_col else set()
 
-            if fn.__name__ in _DATE_AWARE_FILTERS and as_of is not None:
+            if getattr(fn, "_date_aware", False) and as_of is not None:
                 result = fn(result, self.config, as_of=as_of)
             else:
                 result = fn(result, self.config)

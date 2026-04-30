@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import datetime
 
+import numpy as np
 import pandas as pd
 
 from quantified.config import AppConfig, RATING_ORDER
@@ -72,22 +73,46 @@ def compute_composite_score(
 
     分数越低越好（和 double_low 一样），低分 = 高性价比。
     """
-    scoring_cfg = getattr(config.strategy, "scoring", None) or {}
-    credit_w = scoring_cfg.get("credit", {}) if isinstance(scoring_cfg, dict) else {}
-    maturity_w = scoring_cfg.get("maturity", {}) if isinstance(scoring_cfg, dict) else {}
-    floor_w = scoring_cfg.get("bond_floor", {}) if isinstance(scoring_cfg, dict) else {}
+    scoring = config.strategy.scoring
+    credit_w = scoring.credit
+    maturity_w = scoring.maturity
+    floor_w = scoring.bond_floor
 
     ref = as_of or datetime.date.today()
 
     base = df["cb_close"] + df["premium_rate"].fillna(0) * 100
 
-    credit = df["credit_rating"].apply(lambda r: _credit_penalty(r, credit_w))
+    # Credit penalty: vectorized map
+    unknown_credit = credit_w.get("unknown", 5.0) if isinstance(credit_w, dict) else 5.0
+    credit = df["credit_rating"].map(CREDIT_SCORE_MAP).fillna(unknown_credit)
 
-    maturity = df["maturity_date"].apply(
-        lambda d: _maturity_penalty(_remaining_years(d, ref), maturity_w)
-    ) if "maturity_date" in df.columns else pd.Series(0, index=df.index)
+    # Maturity penalty: vectorized with np.select
+    if "maturity_date" in df.columns:
+        remaining_days = df["maturity_date"].apply(
+            lambda d: (d - ref).days if isinstance(d, datetime.date) else 999 * 365
+        )
+        remaining_years = remaining_days / 365.25
+        long_w = maturity_w.get("long", -2.0) if isinstance(maturity_w, dict) else -2.0
+        short_w = maturity_w.get("short", 3.0) if isinstance(maturity_w, dict) else 3.0
+        very_short_w = maturity_w.get("very_short", 8.0) if isinstance(maturity_w, dict) else 8.0
+        maturity = np.select(
+            [remaining_years > 4, remaining_years > 2, remaining_years > 1],
+            [long_w, 0.0, short_w],
+            default=very_short_w,
+        ).astype(float)
+    else:
+        maturity = 0.0
 
-    floor = df["cb_close"].apply(lambda p: _bond_floor_bonus(p, floor_w))
+    # Bond floor bonus: vectorized with np.select
+    price = df["cb_close"]
+    below_par_w = floor_w.get("below_par", -5.0) if isinstance(floor_w, dict) else -5.0
+    near_par_w = floor_w.get("near_par", -2.0) if isinstance(floor_w, dict) else -2.0
+    above_scale = floor_w.get("above_scale", 0.15) if isinstance(floor_w, dict) else 0.15
+    floor = np.select(
+        [price < 100, price <= 105, price <= 110],
+        [below_par_w, near_par_w, 0.0],
+        default=(price - 110) * above_scale,
+    ).astype(float)
 
     return base + credit + maturity + floor
 
@@ -102,38 +127,44 @@ def assign_risk_level(
     - medium: 其余
     """
     ref = as_of or datetime.date.today()
-    results = []
 
-    for _, row in df.iterrows():
-        price = row.get("cb_close", 0) or 0
-        prem = row.get("premium_rate", 0) or 0
-        rating = row.get("credit_rating", "")
-        maturity = row.get("maturity_date")
-        remaining = _remaining_years(maturity, ref) if maturity else 999
+    price = df["cb_close"].fillna(0)
+    prem = df["premium_rate"].fillna(0)
 
-        rating_idx = RATING_ORDER.index(rating) if rating in RATING_ORDER else 99
+    # Rating index calculation
+    def get_rating_idx(r):
+        return RATING_ORDER.index(r) if r in RATING_ORDER else 99
+    rating_idx = df["credit_rating"].fillna("").apply(get_rating_idx)
 
-        is_high = (
-            price > 130
-            or prem > 0.6
-            or rating_idx > RATING_ORDER.index("AA-")
-            or remaining < 0.8
+    # Remaining years calculation
+    if "maturity_date" in df.columns:
+        remaining_years = df["maturity_date"].apply(
+            lambda d: (d - ref).days / 365.25 if isinstance(d, datetime.date) else 999
         )
-        is_low = (
-            price <= 110
-            and prem <= 0.2
-            and rating_idx <= RATING_ORDER.index("AA")
-            and remaining >= 2
-        )
+    else:
+        remaining_years = pd.Series(999.0, index=df.index)
 
-        if is_high:
-            results.append("high")
-        elif is_low:
-            results.append("low")
-        else:
-            results.append("medium")
+    # Vectorized risk level assignment
+    aa_idx = RATING_ORDER.index("AA")
+    aa_minus_idx = RATING_ORDER.index("AA-")
 
-    return pd.Series(results, index=df.index)
+    is_high = (
+        (price > 130)
+        | (prem > 0.6)
+        | (rating_idx > aa_minus_idx)
+        | (remaining_years < 0.8)
+    )
+    is_low = (
+        (price <= 110)
+        & (prem <= 0.2)
+        & (rating_idx <= aa_idx)
+        & (remaining_years >= 2)
+    )
+
+    return pd.Series(
+        np.select([is_high, is_low], ["high", "low"], default="medium"),
+        index=df.index,
+    )
 
 
 def describe_score_factors(row: pd.Series) -> str:

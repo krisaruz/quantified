@@ -1,5 +1,6 @@
 data/*.db
 data/*.db-journal
+data/portfolio.json
 __pycache__/
 *.pyc
 *.egg-info/
@@ -9,3 +10,5 @@ build/
 .env
 *.log
 .history/
+.pytest_cache/
+.cursor/

@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import datetime
 from pathlib import Path
+from datetime import timezone
 
 from sqlalchemy import DateTime, String, select
 from sqlalchemy.engine import Engine
@@ -39,8 +40,8 @@ class DataMeta(Base):
     updated_at: Mapped[datetime.datetime] = mapped_column(
         DateTime,
         nullable=False,
-        default=datetime.datetime.now,
-        onupdate=datetime.datetime.now,
+        default=datetime.datetime.utcnow,
+        onupdate=datetime.datetime.utcnow,
     )
 
 
@@ -55,9 +56,9 @@ def set_meta(session: Session, key: str, value: str) -> None:
     row = session.execute(select(DataMeta).where(DataMeta.key == key)).scalar_one_or_none()
     if row:
         row.value = value
-        row.updated_at = datetime.datetime.now()
+        row.updated_at = datetime.datetime.utcnow()
     else:
-        session.add(DataMeta(key=key, value=value, updated_at=datetime.datetime.now()))
+        session.add(DataMeta(key=key, value=value, updated_at=datetime.datetime.utcnow()))
     session.commit()
 
 

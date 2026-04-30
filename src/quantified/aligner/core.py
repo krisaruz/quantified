@@ -241,6 +241,8 @@ class DataAligner:
         返回指定日期所有 ACTIVE 转债的截面数据，
         含双低值、停牌标记、基础信息，按 double_low 升序排列。
 
+        使用批量查询替代 N+1 循环查询，提升性能。
+
         Args:
             date: 目标日期（如 "2025-03-15"）
 
@@ -249,29 +251,66 @@ class DataAligner:
         """
         target = datetime.date.fromisoformat(date)
 
-        # 查询所有 ACTIVE 转债
+        # 批量查询所有 ACTIVE 转债
         stmt = select(BondBasic).where(BondBasic.status == BondStatus.ACTIVE)
         bonds = self._session.execute(stmt).scalars().all()
+        if not bonds:
+            return pd.DataFrame()
 
+        bond_codes = [b.cb_code for b in bonds]
+        stock_codes = list({b.stock_code for b in bonds})
+
+        # 批量查询当日转债行情（每个 cb_code 取 trade_date <= target 的最新一条）
+        cb_rows = {}
+        for row in self._session.execute(
+            select(BondDaily)
+            .where(BondDaily.cb_code.in_(bond_codes))
+            .where(BondDaily.trade_date <= target)
+            .order_by(BondDaily.trade_date.desc())
+        ).scalars().all():
+            if row.cb_code not in cb_rows:
+                cb_rows[row.cb_code] = row
+
+        # 批量查询当日正股行情（每个 stock_code 取最新一条）
+        stock_rows = {}
+        for row in self._session.execute(
+            select(StockDaily)
+            .where(StockDaily.stock_code.in_(stock_codes))
+            .where(StockDaily.trade_date <= target)
+            .order_by(StockDaily.trade_date.desc())
+        ).scalars().all():
+            if row.stock_code not in stock_rows:
+                stock_rows[row.stock_code] = row
+
+        # 批量查询正股基础信息
+        stock_basics = {
+            sb.stock_code: sb
+            for sb in self._session.execute(
+                select(StockBasic).where(StockBasic.stock_code.in_(stock_codes))
+            ).scalars().all()
+        }
+
+        # 批量查询转股价历史（取每个 cb_code 在 target 之前最新的）
+        conv_prices = {}
+        for row in self._session.execute(
+            select(ConversionPriceHistory)
+            .where(ConversionPriceHistory.cb_code.in_(bond_codes))
+            .where(ConversionPriceHistory.change_date <= target)
+            .order_by(ConversionPriceHistory.change_date.desc())
+        ).scalars().all():
+            if row.cb_code not in conv_prices:
+                conv_prices[row.cb_code] = row.conversion_price
+
+        # Fallback: 从 BondBasic 取最新转股价
+        for bond in bonds:
+            if bond.cb_code not in conv_prices and bond.conv_price_latest:
+                conv_prices[bond.cb_code] = bond.conv_price_latest
+
+        # 组装记录
         records: list[dict] = []
         for bond in bonds:
-            # 查转债当日行情
-            cb_row = self._session.execute(
-                select(BondDaily)
-                .where(BondDaily.cb_code == bond.cb_code)
-                .where(BondDaily.trade_date <= target)
-                .order_by(BondDaily.trade_date.desc())
-                .limit(1)
-            ).scalar_one_or_none()
-
-            # 查正股当日行情
-            stock_row = self._session.execute(
-                select(StockDaily)
-                .where(StockDaily.stock_code == bond.stock_code)
-                .where(StockDaily.trade_date <= target)
-                .order_by(StockDaily.trade_date.desc())
-                .limit(1)
-            ).scalar_one_or_none()
+            cb_row = cb_rows.get(bond.cb_code)
+            stock_row = stock_rows.get(bond.stock_code)
 
             if cb_row is None or stock_row is None:
                 continue
@@ -280,7 +319,7 @@ class DataAligner:
             stock_suspended = stock_row.is_suspended or (stock_row.trade_date != target)
             trade_available = not cb_suspended and not stock_suspended
 
-            conv_price = self._get_conv_price_on_date(bond.cb_code, target)
+            conv_price = conv_prices.get(bond.cb_code)
             if conv_price and conv_price > 0:
                 conversion_value = (100.0 / conv_price) * stock_row.close
                 premium_rate = cb_row.close / conversion_value - 1.0
@@ -290,7 +329,7 @@ class DataAligner:
 
             double_low = cb_row.close + premium_rate * 100 if not np.isnan(premium_rate) else np.nan
 
-            stock_basic = self._session.get(StockBasic, bond.stock_code)
+            stock_basic = stock_basics.get(bond.stock_code)
 
             records.append(
                 {
