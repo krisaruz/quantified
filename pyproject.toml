@@ -1,0 +1,44 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "quantified"
+version = "0.1.0"
+description = "可转债+股票双标的量化回测与模拟交易系统"
+requires-python = ">=3.11"
+dependencies = [
+    "sqlalchemy>=2.0",
+    "akshare>=1.14",
+    "pandas>=2.0",
+    "numpy>=1.24",
+    "click>=8.0",
+    "pyyaml>=6.0",
+    "pydantic>=2.0",
+    "flask>=3.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "pytest-cov>=4.0",
+    "black>=23.0",
+    "ruff>=0.1",
+]
+
+[project.scripts]
+quantified = "quantified.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/quantified"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+
+[tool.ruff]
+src = ["src"]
+line-length = 100
+
+[tool.black]
+line-length = 100

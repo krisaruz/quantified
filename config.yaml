@@ -1,0 +1,38 @@
+strategy:
+  name: double_low
+  hold_count: 10            # 同时持有几只转债
+  rebalance_day: friday     # 每周五收盘后计算调仓
+  buffer_rank: 5            # 缓冲带：排名跌出 hold_count + buffer_rank 才卖
+  scoring:
+    credit:
+      unknown: 5.0          # 无评级惩罚
+    maturity:
+      long: -2.0            # 剩余>4年 奖励
+      short: 3.0            # 1-2年 惩罚
+      very_short: 8.0       # <1年 重罚
+    bond_floor:
+      below_par: -5.0       # 价格<100 面值保护奖励
+      near_par: -2.0        # 100-105 小奖励
+      above_scale: 0.15     # 110以上递增惩罚系数
+
+filters:
+  exclude_st: true          # 排除 ST/*ST 正股
+  min_issue_size: 2.0       # 最小发行规模（亿元）
+  min_remaining_years: 0.5  # 最小剩余期限（年）
+  max_price: 130            # 最高买入价格（元）
+  min_credit_rating: AA-    # 最低信用评级
+  exclude_redeeming: true   # 排除强赎中
+  exclude_suspended: true   # 排除停牌
+  min_turnover: 500         # 最低成交量（手），过滤流动性不足标的
+
+risk:
+  max_position_pct: 0.10    # 单只不超过总资金 10%
+  stop_loss_pct: -0.15      # 单只亏 15% 止损
+  max_drawdown_pct: -0.10   # 总资产从高点回撤 10% 暂停
+
+capital:
+  initial: 100000           # 初始资金（元）
+
+fees:
+  commission_rate: 0.0002   # 交易佣金费率（万分之2）
+  min_commission: 0.1       # 最低佣金（元）

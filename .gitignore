@@ -1,0 +1,11 @@
+data/*.db
+data/*.db-journal
+__pycache__/
+*.pyc
+*.egg-info/
+dist/
+build/
+.venv/
+.env
+*.log
+.history/
