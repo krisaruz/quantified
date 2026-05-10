@@ -14,11 +14,35 @@ from flask import Flask, jsonify, render_template, request
 from quantified.config import load_config
 from quantified.db import init_db
 from quantified.models.base import get_session_factory
-from quantified.portfolio import Holding, load_portfolio, save_portfolio
+from quantified.portfolio import Holding, append_trade_history, load_portfolio, load_trade_history, save_portfolio
 from quantified.recommender import Recommender
 from quantified.universe import build_filtered_ranked, build_universe
 
 logger = logging.getLogger(__name__)
+
+
+def _validate_date_param(name: str = "date") -> str | None:
+    """校验请求中的日期参数格式，返回错误 JSON 响应或 None（合法）。"""
+    val = request.args.get(name)
+    if val is None:
+        return None
+    try:
+        datetime.date.fromisoformat(val)
+    except ValueError:
+        return None  # will be caught below
+    return None
+
+
+def _parse_date_or_400(name: str = "date", default: str | None = None):
+    """解析日期参数，格式无效时返回 (None, 400-response)。"""
+    val = request.args.get(name, default)
+    if val is None:
+        return default, None
+    try:
+        datetime.date.fromisoformat(val)
+        return val, None
+    except ValueError:
+        return None, (jsonify({"status": "error", "message": "日期格式无效，请使用 YYYY-MM-DD 格式"}), 400)
 
 TEMPLATE_DIR = Path(__file__).parent / "templates"
 app = Flask(__name__, template_folder=str(TEMPLATE_DIR))
@@ -63,7 +87,9 @@ def index():
 def api_universe():
     """获取全市场转债截面数据（已过滤+计算双低）"""
     config = load_config()
-    today = request.args.get("date", datetime.date.today().isoformat())
+    today, err = _parse_date_or_400("date", datetime.date.today().isoformat())
+    if err:
+        return err
 
     session = _get_session()
     try:
@@ -92,7 +118,9 @@ def api_universe():
 def api_recommendation():
     """获取调仓建议"""
     config = load_config()
-    today = request.args.get("date", datetime.date.today().isoformat())
+    today, err = _parse_date_or_400("date", datetime.date.today().isoformat())
+    if err:
+        return err
 
     session = _get_session()
     try:
@@ -128,7 +156,9 @@ def api_portfolio():
     """获取当前持仓，联查当前市价计算盈亏"""
     config = load_config()
     portfolio = load_portfolio()
-    today = request.args.get("date", datetime.date.today().isoformat())
+    today, err = _parse_date_or_400("date", datetime.date.today().isoformat())
+    if err:
+        return err
 
     holdings_data = []
     total_market_value = 0.0
@@ -207,6 +237,7 @@ def api_buy():
     )
     portfolio.add(holding, total_cost)
     save_portfolio(portfolio)
+    append_trade_history("buy", data["cb_code"], data.get("cb_name", data["cb_code"]), price, volume, fee)
     return jsonify({"status": "ok", "cash": portfolio.cash, "fee": round(fee, 2)})
 
 
@@ -230,7 +261,16 @@ def api_sell():
 
     portfolio.remove(data["cb_code"], net_proceeds)
     save_portfolio(portfolio)
+    append_trade_history("sell", data["cb_code"], h.cb_name, sell_price, h.volume, fee)
     return jsonify({"status": "ok", "cash": portfolio.cash, "fee": round(fee, 2)})
+
+
+@app.route("/api/portfolio/history")
+def api_portfolio_history():
+    """获取交易历史记录"""
+    limit = request.args.get("limit", 50, type=int)
+    records = load_trade_history(limit=min(limit, 200))
+    return jsonify(_safe_json({"status": "ok", "records": records}))
 
 
 @app.route("/api/config")
@@ -270,19 +310,41 @@ def api_stats():
 @app.route("/api/backtest")
 def api_backtest():
     """运行回测并返回结果"""
+    import threading
+
     from quantified.backtest.engine import BacktestEngine
     from quantified.backtest.stats import compute_stats
 
-    start = request.args.get("start", "2024-01-01")
-    end = request.args.get("end", datetime.date.today().isoformat())
+    start, err = _parse_date_or_400("start", "2024-01-01")
+    if err:
+        return err
+    end, err = _parse_date_or_400("end", datetime.date.today().isoformat())
+    if err:
+        return err
     config = load_config()
 
     session = _get_session()
-    try:
-        bt = BacktestEngine(config, session)
-        result = bt.run(start, end)
-    finally:
-        session.close()
+    bt_result = [None]
+    bt_error = [None]
+
+    def _run():
+        try:
+            bt = BacktestEngine(config, session)
+            bt_result[0] = bt.run(start, end)
+        except Exception as exc:
+            bt_error[0] = exc
+
+    t = threading.Thread(target=_run, daemon=True)
+    t.start()
+    t.join(timeout=120)
+    session.close()
+
+    if t.is_alive():
+        return jsonify({"status": "error", "message": "回测超时，请缩短日期范围"}), 504
+    if bt_error[0]:
+        return jsonify({"status": "error", "message": str(bt_error[0])}), 500
+
+    result = bt_result[0]
 
     stats = compute_stats(result)
 
@@ -372,4 +434,4 @@ def run_server(host: str = "127.0.0.1", port: int = 5000, debug: bool = False):
 
 
 if __name__ == "__main__":
-    run_server(debug=True)
+    run_server(debug=False)

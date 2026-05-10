@@ -1,5 +1,14 @@
 """数据对齐与衍生指标计算引擎
 
+**注意：此模块当前未被 CLI 或 Web 流程使用。**
+
+universe.py 中的 build_universe / build_filtered_ranked 直接查询数据库构建截面，
+并未调用本模块的 DataAligner。本模块提供的功能（历史转股价序列构建、连续停牌天数
+检测、转债-正股日线时间序列对齐）为未来功能预留（如回测引擎增强、多日截面分析）。
+
+如需启用，可在 universe.py 或 backtest/engine.py 中替换相应的数据查询调用为
+DataAligner.align() / DataAligner.align_universe()。
+
 DataAligner:
   - align(): 将单只转债与正股日线按日期合并，处理停牌 ffill，计算衍生指标
   - align_universe(): 全市场截面扫描，输出指定日期所有 ACTIVE 转债的截面数据

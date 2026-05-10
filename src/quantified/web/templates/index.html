@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Quantified · 智能转债策略</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%236c5ce7'/><text x='16' y='23' text-anchor='middle' font-family='system-ui,sans-serif' font-weight='800' font-size='20' fill='white'>Q</text></svg>">
 <style>
 :root {
   --bg: #0b0e14;
@@ -31,6 +32,16 @@
   --shadow: 0 2px 12px rgba(0,0,0,.25);
   --transition: .2s cubic-bezier(.4,0,.2,1);
 }
+[data-theme="light"]{
+  --bg:#f8f9fa;--surface:#ffffff;--surface2:#f0f1f3;--surface3:#e8e9eb;
+  --border:#d8dbe0;--border-hover:#b8bcc5;--text:#1a1d23;--text2:#5a5e6a;--text3:#9498a5;
+  --accent:#6c5ce7;--accent-dim:rgba(108,92,231,.1);
+  --green:#00b388;--green-dim:rgba(0,179,136,.08);--red:#e84040;--red-dim:rgba(232,64,64,.08);
+  --orange:#e07830;--orange-dim:rgba(224,120,48,.08);--blue:#3a8ff0;--blue-dim:rgba(58,143,240,.08);
+  --yellow:#c49000;--shadow:0 2px 12px rgba(0,0,0,.08);
+  color-scheme:light;
+}
+[data-theme="light"] .date-picker{color-scheme:light}
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",sans-serif;background:var(--bg);color:var(--text);line-height:1.6;min-height:100vh;-webkit-font-smoothing:antialiased}
 ::selection{background:var(--accent);color:white}
@@ -49,6 +60,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica N
 .health-dot.err{background:var(--red);box-shadow:0 0 6px var(--red)}
 .sync-info{font-size:.78rem;color:var(--text2)}
 
+/* ========== Stale Warning ========== */
+.stale-banner{display:none;background:rgba(255,216,102,.12);border:1px solid rgba(255,216,102,.3);color:var(--yellow);padding:8px 16px;border-radius:var(--radius-sm);font-size:.82rem;margin-bottom:12px;align-items:center;gap:8px}
+.stale-banner.show{display:flex}
+.stale-banner svg{flex-shrink:0;width:16px;height:16px}
+
 /* ========== Tabs ========== */
 .tabs{display:flex;gap:2px;background:var(--surface);border-radius:var(--radius);padding:3px;margin-bottom:20px;width:fit-content;border:1px solid var(--border)}
 .tab{padding:9px 22px;border-radius:var(--radius-sm);cursor:pointer;font-size:.85rem;font-weight:500;color:var(--text2);transition:var(--transition);border:none;background:transparent;position:relative}
@@ -60,8 +76,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica N
 .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:20px}
 .stat-card{background:var(--surface);border-radius:var(--radius);padding:18px 20px;border:1px solid var(--border);transition:var(--transition);position:relative;overflow:hidden}
 .stat-card:hover{border-color:var(--border-hover);transform:translateY(-1px);box-shadow:var(--shadow)}
-.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;opacity:0;transition:var(--transition)}
-.stat-card:hover::before{opacity:1}
+.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;opacity:.6;transition:var(--transition)}
+.stat-card:hover::before{opacity:1;height:3px}
 .stat-card.accent-green::before{background:var(--green)}
 .stat-card.accent-blue::before{background:var(--blue)}
 .stat-card.accent-red::before{background:var(--red)}
@@ -93,8 +109,8 @@ tbody td{padding:10px 14px;border-bottom:1px solid rgba(42,48,64,.5);white-space
 tbody tr:hover{background:var(--surface2)}
 tbody tr:nth-child(even){background:rgba(255,255,255,.01)}
 tbody tr:nth-child(even):hover{background:var(--surface2)}
-.num-green{color:var(--green);font-weight:600}
-.num-red{color:var(--red);font-weight:600}
+.num-green{color:var(--green);font-weight:600;text-shadow:0 0 8px rgba(0,212,164,.3)}
+.num-red{color:var(--red);font-weight:600;text-shadow:0 0 8px rgba(255,107,107,.3)}
 .num-orange{color:var(--orange)}
 
 /* ========== Tags ========== */
@@ -180,13 +196,19 @@ tbody tr:nth-child(even):hover{background:var(--surface2)}
 .loading{text-align:center;padding:50px 20px;color:var(--text2)}
 .spinner{display:inline-block;width:28px;height:28px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;margin-bottom:10px}
 @keyframes spin{to{transform:rotate(360deg)}}
+.skeleton-row{display:flex;gap:14px;padding:10px 14px;border-bottom:1px solid rgba(42,48,64,.5)}
+.skeleton{height:14px;border-radius:4px;background:linear-gradient(90deg,var(--surface2) 25%,var(--surface3) 50%,var(--surface2) 75%);background-size:200% 100%;animation:shimmer 1.5s ease-in-out infinite}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
 .empty-state{text-align:center;padding:50px 20px;color:var(--text2)}
 .empty-state .icon{font-size:2.5rem;margin-bottom:10px;opacity:.6}
+.empty-state .icon svg{width:48px;height:48px;opacity:.5}
 .empty-state .msg{font-size:.88rem;margin-bottom:12px}
 
-.panel{display:none}
-.panel.active{display:block;animation:fadeIn .25s ease}
+.panel{display:none;opacity:0;transform:translateY(6px)}
+.panel.active{display:block;animation:fadeIn .3s ease forwards}
+.panel.fade-out{display:block;animation:fadeOut .15s ease forwards}
 @keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeOut{from{opacity:1;transform:translateY(0)}to{opacity:0;transform:translateY(-6px)}}
 
 /* ========== Toast ========== */
 .toast-container{position:fixed;top:20px;right:20px;z-index:9999;display:flex;flex-direction:column;gap:8px}
@@ -204,12 +226,33 @@ tbody tr:nth-child(even):hover{background:var(--surface2)}
 .modal p{color:var(--text2);font-size:.9rem;line-height:1.6}
 .modal .actions{display:flex;gap:10px;justify-content:flex-end;margin-top:20px}
 
+/* ========== Progress Bar ========== */
+.progress-indeterminate{height:3px;background:var(--surface3);border-radius:2px;overflow:hidden;display:none}
+.progress-indeterminate.active{display:block}
+.progress-indeterminate::after{content:'';display:block;height:100%;width:30%;background:var(--accent);border-radius:2px;animation:indeterminate 1.2s ease-in-out infinite}
+@keyframes indeterminate{0%{transform:translateX(-100%)}100%{transform:translateX(400%)}}
+
+/* ========== Shortcuts Help ========== */
+.shortcuts-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.65);z-index:1001;justify-content:center;align-items:center;backdrop-filter:blur(4px)}
+.shortcuts-overlay.show{display:flex}
+.shortcuts-box{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:28px;min-width:320px;max-width:420px;box-shadow:0 16px 48px rgba(0,0,0,.4);animation:modalIn .25s ease}
+.shortcuts-box h3{margin-bottom:16px;font-size:1.05rem}
+.shortcut-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;font-size:.88rem}
+.shortcut-row .key{padding:2px 8px;border-radius:4px;font-size:.78rem;font-weight:600;background:var(--surface3);color:var(--text2);border:1px solid var(--border);font-family:monospace;min-width:24px;text-align:center}
+
 /* ========== Footer ========== */
 .disclaimer{position:fixed;bottom:0;left:0;width:100%;background:var(--surface);border-top:1px solid var(--border);padding:8px 20px;text-align:center;font-size:.72rem;color:var(--text3);z-index:100;backdrop-filter:blur(8px)}
 
 /* ========== Keyboard Hint ========== */
 .kbd{display:none;padding:1px 5px;border-radius:4px;font-size:.68rem;font-weight:600;background:var(--surface3);color:var(--text3);border:1px solid var(--border);margin-left:6px;font-family:monospace}
 @media(min-width:768px){.kbd{display:inline-block}}
+
+/* ========== Scrollbar ========== */
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--surface3);border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:var(--border-hover)}
+::-webkit-scrollbar-corner{background:transparent}
 
 /* ========== Chart ========== */
 .chart-container{position:relative;padding:20px;background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);margin-bottom:20px}
@@ -226,6 +269,11 @@ tbody tr:nth-child(even):hover{background:var(--surface2)}
 .bt-status{font-size:.84rem;color:var(--text2);margin-left:auto}
 
 /* ========== Responsive ========== */
+@media(max-width:1024px){
+  .stats-grid{grid-template-columns:repeat(3,1fr)}
+  .action-card{padding:12px 14px;gap:12px}
+  .app{padding:16px 18px 90px}
+}
 @media(max-width:768px){
   .stats-grid{grid-template-columns:repeat(2,1fr)}
   .header{flex-direction:column;gap:10px;align-items:flex-start}
@@ -234,6 +282,14 @@ tbody tr:nth-child(even):hover{background:var(--surface2)}
   .action-card{flex-direction:column;align-items:flex-start}
   .action-card .ac-meta{width:100%;justify-content:space-between}
   .app{padding:12px 14px 90px}
+}
+@media(max-width:480px){
+  .stats-grid{grid-template-columns:repeat(2,1fr)}
+  .tab{padding:6px 12px;font-size:.78rem}
+  .search-box,.date-picker{width:100%}
+  .toolbar{width:100%}
+  .stat-card{padding:14px 16px}
+  .stat-card .value{font-size:1.25rem}
 }
 </style>
 </head>
@@ -246,9 +302,12 @@ tbody tr:nth-child(even):hover{background:var(--surface2)}
     </div>
     <div class="header-right">
       <span class="sync-info"><span class="health-dot ok" id="healthDot"></span><span id="syncInfo">加载中...</span></span>
+      <button class="btn btn-outline btn-sm" onclick="toggleTheme()" id="themeBtn" title="切换深浅模式">☀</button>
       <button class="btn btn-outline btn-sm" onclick="refreshAll()" id="refreshBtn">刷新</button>
     </div>
   </div>
+
+  <div class="stale-banner" id="staleBanner"><svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 1a7 7 0 100 14A7 7 0 008 1zm0 3a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 018 4zm0 7a.75.75 0 110-1.5.75.75 0 010 1.5z"/></svg><span id="staleMsg"></span></div>
 
   <div class="tabs" id="tabBar">
     <button class="tab active" data-tab="dashboard" onclick="switchTab('dashboard')">总览<span class="kbd">1</span></button>
@@ -278,6 +337,17 @@ tbody tr:nth-child(even):hover{background:var(--surface2)}
       <div class="stat-card" id="pnlCard"><div class="label">总收益率</div><div class="value" id="statPnl">-</div></div>
     </div>
 
+    <div style="display:flex;gap:16px;margin-bottom:20px;flex-wrap:wrap">
+      <div class="section" style="flex:1;min-width:240px;max-width:320px;margin-bottom:0">
+        <div class="section-header"><h2>资产配置</h2></div>
+        <div style="padding:16px;text-align:center"><canvas id="pieChart" width="160" height="160" style="width:160px;height:160px"></canvas><div id="pieLabels" style="font-size:.78rem;color:var(--text2);margin-top:8px"></div></div>
+      </div>
+      <div class="section" style="flex:2;min-width:300px;margin-bottom:0">
+        <div class="section-header"><h2>过滤漏斗</h2></div>
+        <div id="funnelViz" style="padding:16px"></div>
+      </div>
+    </div>
+
     <div class="section">
       <div class="section-header">
         <h2>综合评分 TOP 10</h2>
@@ -296,7 +366,7 @@ tbody tr:nth-child(even):hover{background:var(--surface2)}
             <th>评级<span class="help-tip" data-tip="信用评级。AAA=最安全，AA+=优秀，AA=良好，AA-=及格线">?</span></th>
             <th>风险<span class="help-tip" data-tip="低风险=适合新手，中等=正常波动，高风险=价格高或条件差">?</span></th>
           </tr></thead>
-          <tbody id="topTable"><tr><td colspan="8" class="loading"><div class="spinner"></div></td></tr></tbody>
+          <tbody id="topTable"><tr><td colspan="8"><div class="skeleton-row"><div class="skeleton" style="width:24px"></div><div class="skeleton" style="width:72px"></div><div class="skeleton" style="width:96px"></div><div class="skeleton" style="flex:1"></div></div><div class="skeleton-row"><div class="skeleton" style="width:24px"></div><div class="skeleton" style="width:72px"></div><div class="skeleton" style="width:96px"></div><div class="skeleton" style="flex:1"></div></div><div class="skeleton-row"><div class="skeleton" style="width:24px"></div><div class="skeleton" style="width:72px"></div><div class="skeleton" style="width:96px"></div><div class="skeleton" style="flex:1"></div></div></td></tr></tbody>
         </table>
       </div>
     </div>
@@ -326,7 +396,7 @@ tbody tr:nth-child(even):hover{background:var(--surface2)}
             <th>评级<span class="help-tip" data-tip="AAA=最安全，AA-=及格线">?</span></th>
             <th>风险<span class="help-tip" data-tip="低=适合新手，高=波动大需谨慎">?</span></th>
           </tr></thead>
-          <tbody id="universeTable"><tr><td colspan="9" class="loading"><div class="spinner"></div></td></tr></tbody>
+          <tbody id="universeTable"><tr><td colspan="9"><div class="skeleton-row"><div class="skeleton" style="width:24px"></div><div class="skeleton" style="width:72px"></div><div class="skeleton" style="width:96px"></div><div class="skeleton" style="flex:1"></div></div><div class="skeleton-row"><div class="skeleton" style="width:24px"></div><div class="skeleton" style="width:72px"></div><div class="skeleton" style="width:96px"></div><div class="skeleton" style="flex:1"></div></div><div class="skeleton-row"><div class="skeleton" style="width:24px"></div><div class="skeleton" style="width:72px"></div><div class="skeleton" style="width:96px"></div><div class="skeleton" style="flex:1"></div></div></td></tr></tbody>
         </table>
       </div>
     </div>
@@ -358,7 +428,7 @@ tbody tr:nth-child(even):hover{background:var(--surface2)}
           <span class="badge" id="recDateBadge">-</span>
         </div>
       </div>
-      <div id="recContent"><div class="loading"><div class="spinner"></div></div></div>
+      <div id="recContent"><div class="skeleton-row"><div class="skeleton" style="width:54px"></div><div class="skeleton" style="flex:1"></div><div class="skeleton" style="width:80px"></div></div><div class="skeleton-row"><div class="skeleton" style="width:54px"></div><div class="skeleton" style="flex:1"></div><div class="skeleton" style="width:80px"></div></div></div>
     </div>
   </div>
 
@@ -384,8 +454,23 @@ tbody tr:nth-child(even):hover{background:var(--surface2)}
             <th>收益率<span class="help-tip" data-tip="(现价-买入价)/买入价。绿色=盈利，红色=亏损">?</span></th>
             <th>操作</th>
           </tr></thead>
-          <tbody id="portTable"><tr><td colspan="10" class="empty-state"><div class="icon">📭</div><div class="msg">暂无持仓</div><button class="btn btn-sm btn-outline" onclick="switchTab('recommend')">查看调仓建议</button></td></tr></tbody>
+          <tbody id="portTable"><tr><td colspan="10" class="empty-state"><div class="icon"><svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="6" y="10" width="36" height="28" rx="4" stroke="currentColor" stroke-width="2"/><path d="M6 18h36" stroke="currentColor" stroke-width="2"/><circle cx="24" cy="32" r="4" stroke="currentColor" stroke-width="2"/></svg></div><div class="msg">暂无持仓</div><button class="btn btn-sm btn-outline" onclick="switchTab('recommend')">查看调仓建议</button></td></tr></tbody>
         </table>
+      </div>
+    </div>
+  </div>
+
+    <div class="section">
+      <div class="section-header" style="cursor:pointer" onclick="toggleHistory()">
+        <h2>交易历史 <span style="font-size:.78rem;color:var(--text2);font-weight:400" id="historyToggle">▶ 展开</span></h2>
+      </div>
+      <div id="historyContent" style="display:none">
+        <div class="table-wrap" style="max-height:40vh;overflow-y:auto">
+          <table>
+            <thead><tr><th>时间</th><th>操作</th><th>代码</th><th>名称</th><th>价格</th><th>数量</th><th>佣金</th></tr></thead>
+            <tbody id="historyTable"></tbody>
+          </table>
+        </div>
       </div>
     </div>
   </div>
@@ -394,11 +479,11 @@ tbody tr:nth-child(even):hover{background:var(--surface2)}
   <div class="panel" id="panel-filters">
     <div class="section">
       <div class="section-header"><h2>过滤器执行流程</h2><span class="badge" id="filterTotal">-</span></div>
-      <div class="audit-list" id="filterAudit"><div class="loading"><div class="spinner"></div></div></div>
+      <div class="audit-list" id="filterAudit"><div class="skeleton-row"><div class="skeleton" style="width:100px"></div><div class="skeleton" style="flex:1;max-width:120px"></div><div class="skeleton" style="width:80px"></div></div><div class="skeleton-row"><div class="skeleton" style="width:100px"></div><div class="skeleton" style="flex:1;max-width:120px"></div><div class="skeleton" style="width:80px"></div></div></div>
     </div>
     <div class="section">
       <div class="section-header"><h2>当前策略配置</h2></div>
-      <div class="audit-list" id="configDisplay"><div class="loading"><div class="spinner"></div></div></div>
+      <div class="audit-list" id="configDisplay"><div class="skeleton-row"><div class="skeleton" style="width:80px"></div><div class="skeleton" style="flex:1"></div></div><div class="skeleton-row"><div class="skeleton" style="width:80px"></div><div class="skeleton" style="flex:1"></div></div></div>
     </div>
   </div>
 
@@ -412,6 +497,7 @@ tbody tr:nth-child(even):hover{background:var(--surface2)}
       <button class="btn btn-primary" onclick="runBacktest()" id="btRunBtn">运行回测</button>
       <span class="bt-status" id="btStatus"></span>
     </div>
+    <div class="progress-indeterminate" id="btProgress"></div>
 
     <div id="btResult" style="display:none">
       <div class="stats-grid" id="btStatsGrid"></div>
@@ -447,10 +533,25 @@ tbody tr:nth-child(even):hover{background:var(--surface2)}
     </div>
 
     <div id="btEmpty" class="section" style="padding:60px 20px;text-align:center">
-      <div style="font-size:2.5rem;opacity:.5;margin-bottom:12px">📈</div>
+      <div style="opacity:.5;margin-bottom:12px"><svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><polyline points="6,36 16,24 26,30 42,12" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/><polyline points="32,12 42,12 42,22" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/><line x1="6" y1="42" x2="42" y2="42" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></div>
       <div style="color:var(--text2);font-size:.92rem;margin-bottom:8px">选择日期范围，点击"运行回测"查看策略历史表现</div>
       <div style="color:var(--text3);font-size:.8rem">需要先回填历史数据：quantified backfill --start 2023-01-01</div>
     </div>
+  </div>
+</div>
+
+<div class="shortcuts-overlay" id="shortcutsOverlay" onclick="if(event.target===this)this.classList.remove('show')">
+  <div class="shortcuts-box">
+    <h3>快捷键</h3>
+    <div class="shortcut-row"><span>切换到总览</span><span class="key">1</span></div>
+    <div class="shortcut-row"><span>切换到全市场</span><span class="key">2</span></div>
+    <div class="shortcut-row"><span>切换到调仓建议</span><span class="key">3</span></div>
+    <div class="shortcut-row"><span>切换到持仓</span><span class="key">4</span></div>
+    <div class="shortcut-row"><span>切换到过滤器</span><span class="key">5</span></div>
+    <div class="shortcut-row"><span>切换到回测</span><span class="key">6</span></div>
+    <div class="shortcut-row"><span>刷新数据</span><span class="key">R</span></div>
+    <div class="shortcut-row"><span>显示此帮助</span><span class="key">?</span></div>
+    <div class="shortcut-row"><span>关闭</span><span class="key">Esc</span></div>
   </div>
 </div>
 
@@ -482,7 +583,16 @@ let _sortAsc = true;
 /* ====== Utilities ====== */
 function switchTab(name) {
   document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
-  document.querySelectorAll('.panel').forEach(p => p.classList.toggle('active', p.id === 'panel-' + name));
+  const current = document.querySelector('.panel.active');
+  const next = document.getElementById('panel-' + name);
+  if (current && current !== next) {
+    current.classList.add('fade-out');
+    current.classList.remove('active');
+    setTimeout(() => current.classList.remove('fade-out'), 150);
+  }
+  document.querySelectorAll('.panel').forEach(p => { if (p !== next) { p.classList.remove('active'); } });
+  next.classList.add('active');
+  sessionStorage.setItem('q_tab', name);
   if (name === 'recommend') loadRecommendation();
   if (name === 'portfolio') loadPortfolio();
 }
@@ -537,11 +647,32 @@ async function loadDashboard(){
     fetchJSON('/api/stats'),fetchJSON('/api/universe'),fetchJSON('/api/portfolio'),fetchJSON('/api/recommendation').catch(()=>({})),
   ]);
 
-  // Health indicator
+  // Health indicator + stale check
+  const healthData = await fetchJSON('/health').catch(() => ({}));
   const dot = document.getElementById('healthDot');
   if (stats.last_sync === '从未同步') { dot.className='health-dot err'; }
+  else if (healthData.data_stale) { dot.className='health-dot warn'; }
   else { dot.className='health-dot ok'; }
-  document.getElementById('syncInfo').innerHTML = '<span class="health-dot '+(stats.last_sync==='从未同步'?'err':'ok')+'" id="healthDot"></span>同步: '+(stats.last_sync||'从未');
+  document.getElementById('syncInfo').innerHTML = '<span class="health-dot '+(stats.last_sync==='从未同步'?'err':healthData.data_stale?'warn':'ok')+'" id="healthDot"></span>同步: '+(stats.last_sync||'从未');
+
+  const staleBanner = document.getElementById('staleBanner');
+  if (healthData.data_stale && healthData.last_sync) {
+    const staleDays = Math.floor((Date.now() - new Date(healthData.last_sync).getTime()) / 86400000);
+    document.getElementById('staleMsg').textContent = `数据已过期 ${staleDays} 天，请运行 quantified sync`;
+    staleBanner.classList.add('show');
+    window._dataStale = true;
+  } else {
+    staleBanner.classList.remove('show');
+    window._dataStale = false;
+  }
+  const dashTab = document.querySelector('.tab[data-tab="dashboard"]');
+  const existingBadge = dashTab.querySelector('.tab-badge');
+  if (window._dataStale && !existingBadge) {
+    const badge = document.createElement('span'); badge.className = 'tab-badge';
+    dashTab.appendChild(badge);
+  } else if (!window._dataStale && existingBadge) {
+    existingBadge.remove();
+  }
 
   // Summary panel
   const dSummary=document.getElementById('dashSummary');
@@ -580,11 +711,17 @@ async function loadDashboard(){
   renderTop10(universeData.slice(0,10));
   renderUniverse(universeData);
   renderFilterAudit(universe.filter_audit||[]);
+
+  // Pie chart
+  renderPieChart(portfolio.cash || 0, (portfolio.total_market_value || portfolio.total_assets - portfolio.cash) || 0);
+
+  // Funnel
+  renderFunnel(universe.filter_audit || []);
 }
 
 function renderTop10(top){
   const tb=document.getElementById('topTable');
-  if(!top.length){tb.innerHTML='<tr><td colspan="8" class="empty-state"><div class="icon">📊</div><div class="msg">暂无数据，请先运行数据同步</div></td></tr>';return}
+  if(!top.length){tb.innerHTML='<tr><td colspan="8" class="empty-state"><div class="icon"><svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="4" y="24" width="10" height="18" rx="2" stroke="currentColor" stroke-width="2"/><rect x="19" y="14" width="10" height="28" rx="2" stroke="currentColor" stroke-width="2"/><rect x="34" y="6" width="10" height="36" rx="2" stroke="currentColor" stroke-width="2"/></svg></div><div class="msg">暂无数据，请先运行数据同步</div></td></tr>';return}
   tb.innerHTML=top.map((r,i)=>`<tr>
     <td><strong style="color:${i<3?'var(--accent)':'var(--text2)'}">${i+1}</strong></td>
     <td style="color:var(--text2);font-size:.8rem">${r.cb_code||'-'}</td>
@@ -595,6 +732,58 @@ function renderTop10(top){
     <td>${r.credit_rating||'-'}</td>
     <td>${riskTag(r.risk_level)}</td>
   </tr>`).join('');
+}
+
+/* ====== Pie Chart ====== */
+function renderPieChart(cash, position) {
+  const canvas = document.getElementById('pieChart');
+  const ctx = canvas.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  canvas.width = 160 * dpr; canvas.height = 160 * dpr;
+  ctx.scale(dpr, dpr);
+  const cx = 80, cy = 80, r = 60;
+  const total = cash + position;
+  if (total <= 0) return;
+  const slices = [
+    { val: position, color: '#6c5ce7', label: '持仓' },
+    { val: cash, color: '#555b6e', label: '现金' },
+  ];
+  let start = -Math.PI / 2;
+  slices.forEach(s => {
+    const angle = (s.val / total) * Math.PI * 2;
+    ctx.beginPath(); ctx.moveTo(cx, cy);
+    ctx.arc(cx, cy, r, start, start + angle);
+    ctx.closePath(); ctx.fillStyle = s.color; ctx.fill();
+    start += angle;
+  });
+  ctx.beginPath(); ctx.arc(cx, cy, r * 0.55, 0, Math.PI * 2);
+  ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--surface').trim();
+  ctx.fill();
+  document.getElementById('pieLabels').innerHTML = slices.map(s =>
+    `<span style="margin:0 8px"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${s.color};margin-right:4px;vertical-align:middle"></span>${s.label}: ${(s.val/total*100).toFixed(1)}%</span>`
+  ).join('');
+
+  canvas.onmousemove = e => {
+    const rect = canvas.getBoundingClientRect();
+    const mx = e.clientX - rect.left - 80, my = e.clientY - rect.top - 80;
+    const dist = Math.sqrt(mx*mx + my*my);
+    canvas.title = dist <= r ? `持仓: ${fmtMoney(position)}元 / 现金: ${fmtMoney(cash)}元` : '';
+  };
+}
+
+/* ====== Funnel ====== */
+function renderFunnel(audit) {
+  const el = document.getElementById('funnelViz');
+  if (!audit.length) { el.innerHTML = '<div style="color:var(--text3);font-size:.84rem;padding:20px;text-align:center">暂无过滤数据</div>'; return; }
+  const maxCount = audit[0]?.before_count || 1;
+  el.innerHTML = audit.map(a => {
+    const pct = Math.max((a.after_count / maxCount) * 100, 4);
+    const removed = a.before_count - a.after_count;
+    return `<div style="margin-bottom:6px">
+      <div style="display:flex;justify-content:space-between;font-size:.78rem;color:var(--text2);margin-bottom:2px"><span>${a.name}</span><span>${a.after_count}${removed > 0 ? ' <span style="color:var(--red)">-' + removed + '</span>' : ''}</span></div>
+      <div style="height:18px;background:var(--surface3);border-radius:4px;overflow:hidden"><div style="height:100%;width:${pct}%;background:linear-gradient(90deg,var(--accent),#a78bfa);border-radius:4px;transition:width .5s ease"></div></div>
+    </div>`;
+  }).join('');
 }
 
 /* ====== Universe ====== */
@@ -620,6 +809,8 @@ function filterUniverse(){
 }
 function sortUniverse(col){
   if(_sortCol===col){_sortAsc=!_sortAsc}else{_sortCol=col;_sortAsc=true}
+  sessionStorage.setItem('q_sortCol', _sortCol);
+  sessionStorage.setItem('q_sortAsc', _sortAsc);
   document.querySelectorAll('#universeTableEl thead th').forEach(th=>{
     th.classList.remove('sorted');
     const ic=th.querySelector('.sort-icon');if(ic)ic.textContent='▼';
@@ -689,7 +880,7 @@ async function loadRecommendation(){
   const actions=recData.actions||[];
   const content=document.getElementById('recContent');
   if(!actions.length){
-    content.innerHTML='<div class="empty-state" style="padding:40px"><div class="icon">✨</div><div class="msg">暂无调仓建议</div></div>';
+    content.innerHTML='<div class="empty-state" style="padding:40px"><div class="icon"><svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M24 4l3 9h9l-7 5 3 9-8-6-8 6 3-9-7-5h9z" stroke="currentColor" stroke-width="2" fill="none" stroke-linejoin="round"/><line x1="8" y1="38" x2="40" y2="38" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="12" y1="44" x2="36" y2="44" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></div><div class="msg">暂无调仓建议</div></div>';
     return;
   }
 
@@ -757,7 +948,7 @@ async function loadPortfolio(){
 
   const tb=document.getElementById('portTable');
   if(!portData.holdings||!portData.holdings.length){
-    tb.innerHTML='<tr><td colspan="10" class="empty-state"><div class="icon">📭</div><div class="msg">暂无持仓</div><button class="btn btn-sm btn-outline" onclick="switchTab(\'recommend\')">查看调仓建议</button></td></tr>';
+    tb.innerHTML='<tr><td colspan="10" class="empty-state"><div class="icon"><svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="6" y="10" width="36" height="28" rx="4" stroke="currentColor" stroke-width="2"/><path d="M6 18h36" stroke="currentColor" stroke-width="2"/><circle cx="24" cy="32" r="4" stroke="currentColor" stroke-width="2"/></svg></div><div class="msg">暂无持仓</div><button class="btn btn-sm btn-outline" onclick="switchTab(\'recommend\')">查看调仓建议</button></td></tr>';
     return;
   }
   tb.innerHTML=portData.holdings.map(h=>{
@@ -776,6 +967,34 @@ function sellHolding(code,name,price,vol){
   showConfirm('确认卖出',`卖出 ${name} (${code}) ${vol}张，现价 ${price.toFixed(2)} 元？`,async()=>{
     try{await postJSON('/api/portfolio/sell',{cb_code:code,sell_price:price});showToast('卖出成功','success');loadPortfolio()}catch(e){}
   });
+}
+
+/* ====== Trade History ====== */
+let _historyLoaded = false;
+function toggleHistory() {
+  const el = document.getElementById('historyContent');
+  const toggle = document.getElementById('historyToggle');
+  if (el.style.display === 'none') {
+    el.style.display = 'block'; toggle.textContent = '▼ 收起';
+    if (!_historyLoaded) loadHistory();
+  } else {
+    el.style.display = 'none'; toggle.textContent = '▶ 展开';
+  }
+}
+async function loadHistory() {
+  try {
+    const data = await fetchJSON('/api/portfolio/history?limit=50');
+    const tb = document.getElementById('historyTable');
+    const records = data.records || [];
+    if (!records.length) { tb.innerHTML = '<tr><td colspan="7" class="empty-state"><div class="msg">暂无交易记录</div></td></tr>'; return; }
+    tb.innerHTML = records.map(r => `<tr>
+      <td style="color:var(--text2);font-size:.78rem">${(r.timestamp||'').slice(0,16).replace('T',' ')}</td>
+      <td>${r.action==='buy'?'<span class="tag tag-buy">买入</span>':'<span class="tag tag-sell">卖出</span>'}</td>
+      <td style="font-size:.8rem">${r.cb_code}</td><td><strong>${r.cb_name}</strong></td>
+      <td>${fmt(r.price,2)}</td><td>${r.volume}</td><td style="color:var(--text2)">${fmt(r.fee,2)}</td>
+    </tr>`).join('');
+    _historyLoaded = true;
+  } catch(e) {}
 }
 
 /* ====== Config ====== */
@@ -818,25 +1037,25 @@ function exportCSV(type){
     if(!universeData.length){showToast('无数据可导出','error');return}
     rows=[['排名','代码','名称','现价','溢价率','综合评分','转股价值','评级','风险等级']];
     universeData.forEach((r,i)=>rows.push([r.rank||i+1,r.cb_code,r.cb_name,r.cb_close,r.premium_rate,r.composite_score,r.conversion_value,r.credit_rating,r.risk_level]));
-    filename='universe_'+(document.getElementById('universeDate').value||'today')+'.csv';
+    filename='quantified_universe_'+(document.getElementById('universeDate').value||new Date().toISOString().slice(0,10))+'.csv';
   }else if(type==='recommendation'){
     const actions=recData.actions||[];
     if(!actions.length){showToast('无数据可导出','error');return}
     rows=[['操作','代码','名称','现价','数量','费用','原因']];
     actions.forEach(a=>rows.push([actionLabel(a.type),a.cb_code,a.cb_name,a.price,a.volume,a.estimated_cost||a.estimated_fee||'',a.reason]));
-    filename='recommendation_'+(recData.date||'today')+'.csv';
+    filename='quantified_recommendation_'+(recData.date||new Date().toISOString().slice(0,10))+'.csv';
   }else if(type==='portfolio'){
     const h=portData.holdings||[];
     if(!h.length){showToast('无数据可导出','error');return}
     rows=[['代码','名称','买入价','现价','数量','成本','市值','盈亏','收益率']];
     h.forEach(r=>rows.push([r.cb_code,r.cb_name,r.buy_price,r.current_price,r.volume,r.cost,r.market_value,r.pnl,r.pnl_pct]));
-    filename='portfolio.csv';
+    filename='quantified_portfolio_'+new Date().toISOString().slice(0,10)+'.csv';
   }else if(type==='backtest'){
     const t=btData?.trades||[];
     if(!t.length){showToast('无数据可导出','error');return}
     rows=[['日期','方向','代码','名称','成交价','数量','金额','佣金','原因']];
     t.forEach(r=>rows.push([r.date,r.direction,r.cb_code,r.cb_name,r.price,r.volume,r.amount,r.fee,r.reason]));
-    filename='backtest_trades.csv';
+    filename='quantified_backtest_'+new Date().toISOString().slice(0,10)+'.csv';
   }
   if(!rows)return;
   const bom='\uFEFF';
@@ -854,9 +1073,15 @@ async function runBacktest(){
   const end = document.getElementById('btEnd').value || new Date().toISOString().slice(0,10);
   if(!start){showToast('请选择起始日期','error');return}
 
+  const days = Math.round((new Date(end) - new Date(start)) / 86400000 * 5 / 7);
+  showConfirm('确认运行回测', `即将回测 ${start} 至 ${end}（约 ${days} 交易日），确认继续？`, () => _doBacktest(start, end));
+}
+async function _doBacktest(start, end){
   const btn = document.getElementById('btRunBtn');
   const status = document.getElementById('btStatus');
+  const progress = document.getElementById('btProgress');
   btn.disabled = true; btn.textContent = '回测中...';
+  progress.classList.add('active');
   status.textContent = '正在计算，请稍候...';
 
   try {
@@ -872,6 +1097,7 @@ async function runBacktest(){
     status.textContent = '回测失败';
   }
   btn.disabled = false; btn.textContent = '运行回测';
+  progress.classList.remove('active');
 }
 
 function renderBtStats(data) {
@@ -924,95 +1150,86 @@ function renderBtChart(data) {
   const yNv = v => pad.top + (1 - (v - minV) / (maxV - minV)) * (ch * 0.65);
   const yDd = d => pad.top + ch * 0.7 + (d / maxDD) * (ch * 0.28);
 
-  // Background
-  ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--surface').trim();
-  ctx.fillRect(0, 0, W, H);
+  // Entry animation: redraw net value line progressively
+  let animFrame = 0;
+  const totalFrames = 48;
+  function animateChart() {
+    animFrame++;
+    const progress = Math.min(animFrame / totalFrames, 1);
+    const drawCount = Math.floor(snaps.length * progress);
 
-  // Grid lines
-  ctx.strokeStyle = 'rgba(42,48,64,0.5)';
-  ctx.lineWidth = 0.5;
-  for (let i = 0; i < 5; i++) {
-    const gy = pad.top + (ch * 0.65 / 4) * i;
-    ctx.beginPath(); ctx.moveTo(pad.left, gy); ctx.lineTo(W - pad.right, gy); ctx.stroke();
+    ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--surface').trim();
+    ctx.fillRect(0, 0, W, H);
+    // Redraw grid
+    ctx.strokeStyle = 'rgba(42,48,64,0.5)'; ctx.lineWidth = 0.5;
+    for (let i = 0; i < 5; i++) { const gy = pad.top + (ch * 0.65 / 4) * i; ctx.beginPath(); ctx.moveTo(pad.left, gy); ctx.lineTo(W - pad.right, gy); ctx.stroke(); }
+    // Baseline
+    if (baseline >= minV && baseline <= maxV) {
+      ctx.strokeStyle = 'rgba(125,131,150,0.3)'; ctx.setLineDash([4, 4]);
+      ctx.beginPath(); ctx.moveTo(pad.left, yNv(baseline)); ctx.lineTo(W - pad.right, yNv(baseline)); ctx.stroke(); ctx.setLineDash([]);
+      ctx.fillStyle = 'rgba(125,131,150,0.5)'; ctx.font = '10px sans-serif'; ctx.textAlign = 'right'; ctx.fillText('本金', pad.left - 4, yNv(baseline) + 3);
+    }
+    // Net value line (partial)
+    ctx.strokeStyle = '#6c5ce7'; ctx.lineWidth = 2;
+    ctx.beginPath();
+    for (let i = 0; i < drawCount; i++) { const px = x(i), py = yNv(values[i]); i === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py); }
+    ctx.stroke();
+    // Fill
+    if (drawCount > 1) { ctx.globalAlpha = 0.08; ctx.fillStyle = '#6c5ce7'; ctx.lineTo(x(drawCount-1), yNv(minV)); ctx.lineTo(x(0), yNv(minV)); ctx.closePath(); ctx.fill(); ctx.globalAlpha = 1; }
+    // Drawdown (partial)
+    ctx.fillStyle = 'rgba(255,107,107,0.15)'; ctx.beginPath(); ctx.moveTo(pad.left, yDd(0));
+    for (let i = 0; i < drawCount; i++) ctx.lineTo(x(i), yDd(drawdowns[i]));
+    if (drawCount > 0) ctx.lineTo(x(drawCount-1), yDd(0));
+    ctx.closePath(); ctx.fill();
+    ctx.strokeStyle = '#ff6b6b'; ctx.lineWidth = 1.5; ctx.beginPath();
+    for (let i = 0; i < drawCount; i++) { const px = x(i), py = yDd(drawdowns[i]); i === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py); }
+    ctx.stroke();
+    // Y axis labels
+    ctx.fillStyle = 'rgba(125,131,150,0.7)'; ctx.font = '10px sans-serif'; ctx.textAlign = 'right';
+    for (let i = 0; i < 5; i++) { const v = maxV - (maxV - minV) * (i / 4); const gy = pad.top + (ch * 0.65 / 4) * i; ctx.fillText(fmtMoney(v), pad.left - 6, gy + 3); }
+    // X axis labels
+    ctx.textAlign = 'center'; const step = Math.max(1, Math.floor(snaps.length / 6));
+    for (let i = 0; i < snaps.length; i += step) ctx.fillText(snaps[i].date.slice(5), x(i), H - 6);
+    // Drawdown Y axis
+    ctx.textAlign = 'left'; ctx.fillText('0%', W - pad.right + 4, yDd(0) + 3);
+    ctx.fillText(`-${(maxDD * 100).toFixed(1)}%`, W - pad.right + 4, yDd(maxDD) + 3);
+
+    if (progress < 1) requestAnimationFrame(animateChart);
   }
+  requestAnimationFrame(animateChart);
 
-  // Baseline
-  if (baseline >= minV && baseline <= maxV) {
-    ctx.strokeStyle = 'rgba(125,131,150,0.3)';
-    ctx.setLineDash([4, 4]);
-    ctx.beginPath(); ctx.moveTo(pad.left, yNv(baseline)); ctx.lineTo(W - pad.right, yNv(baseline)); ctx.stroke();
-    ctx.setLineDash([]);
-    ctx.fillStyle = 'rgba(125,131,150,0.5)'; ctx.font = '10px sans-serif'; ctx.textAlign = 'right';
-    ctx.fillText('本金', pad.left - 4, yNv(baseline) + 3);
-  }
-
-  // Net value line
-  ctx.strokeStyle = '#6c5ce7'; ctx.lineWidth = 2;
-  ctx.beginPath();
-  for (let i = 0; i < snaps.length; i++) {
-    const px = x(i), py = yNv(values[i]);
-    i === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
-  }
-  ctx.stroke();
-
-  // Fill under net value
-  ctx.globalAlpha = 0.08;
-  ctx.fillStyle = '#6c5ce7';
-  ctx.lineTo(x(snaps.length - 1), yNv(minV));
-  ctx.lineTo(x(0), yNv(minV));
-  ctx.closePath(); ctx.fill();
-  ctx.globalAlpha = 1;
-
-  // Drawdown area
-  ctx.fillStyle = 'rgba(255,107,107,0.15)';
-  ctx.beginPath(); ctx.moveTo(pad.left, yDd(0));
-  for (let i = 0; i < snaps.length; i++) ctx.lineTo(x(i), yDd(drawdowns[i]));
-  ctx.lineTo(x(snaps.length - 1), yDd(0));
-  ctx.closePath(); ctx.fill();
-
-  ctx.strokeStyle = '#ff6b6b'; ctx.lineWidth = 1.5;
-  ctx.beginPath();
-  for (let i = 0; i < snaps.length; i++) {
-    const px = x(i), py = yDd(drawdowns[i]);
-    i === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
-  }
-  ctx.stroke();
-
-  // Y axis labels
-  ctx.fillStyle = 'rgba(125,131,150,0.7)'; ctx.font = '10px sans-serif'; ctx.textAlign = 'right';
-  for (let i = 0; i < 5; i++) {
-    const v = maxV - (maxV - minV) * (i / 4) * (0.65 / 0.65);
-    const gy = pad.top + (ch * 0.65 / 4) * i;
-    ctx.fillText(fmtMoney(v), pad.left - 6, gy + 3);
-  }
-
-  // X axis labels
-  ctx.textAlign = 'center';
-  const step = Math.max(1, Math.floor(snaps.length / 6));
-  for (let i = 0; i < snaps.length; i += step) {
-    ctx.fillText(snaps[i].date.slice(5), x(i), H - 6);
-  }
-
-  // Drawdown Y axis
-  ctx.textAlign = 'left';
-  ctx.fillText('0%', W - pad.right + 4, yDd(0) + 3);
-  ctx.fillText(`-${(maxDD * 100).toFixed(1)}%`, W - pad.right + 4, yDd(maxDD) + 3);
-
-  // Mouse hover tooltip
-  const tooltip = document.getElementById('btTooltip');
-  canvas.onmousemove = e => {
+  // Crosshair + tooltip helper
+  function showCrosshair(clientX, clientY) {
     const rect = canvas.getBoundingClientRect();
-    const mx = (e.clientX - rect.left) * (canvas.width / dpr / rect.width);
+    const mx = (clientX - rect.left) * (canvas.width / dpr / rect.width);
     const idx = Math.round((mx - pad.left) / cw * (snaps.length - 1));
     if (idx < 0 || idx >= snaps.length) { tooltip.style.display = 'none'; return; }
+
+    // Redraw full chart then overlay crosshair
+    animFrame = totalFrames; animateChart();
+
+    // Vertical dashed crosshair line
+    ctx.save(); ctx.strokeStyle = 'rgba(230,233,240,0.3)'; ctx.lineWidth = 1; ctx.setLineDash([3, 3]);
+    ctx.beginPath(); ctx.moveTo(x(idx), pad.top); ctx.lineTo(x(idx), pad.top + ch); ctx.stroke();
+    ctx.restore();
+
+    // Highlight dot
+    ctx.beginPath(); ctx.arc(x(idx), yNv(values[idx]), 4, 0, Math.PI * 2);
+    ctx.fillStyle = '#6c5ce7'; ctx.fill(); ctx.strokeStyle = 'white'; ctx.lineWidth = 1.5; ctx.stroke();
+
     const s = snaps[idx];
     const ret = ((s.net_value / baseline) - 1) * 100;
     tooltip.innerHTML = `<div>${s.date}</div><div>净值: ${fmtMoney(s.net_value)}</div><div>收益: ${ret >= 0 ? '+' : ''}${ret.toFixed(2)}%</div><div>回撤: -${(drawdowns[idx] * 100).toFixed(2)}%</div><div>持仓: ${s.position_count}只</div>`;
     tooltip.style.display = 'block';
-    tooltip.style.left = Math.min(e.clientX - rect.left + 12, W - 160) + 'px';
-    tooltip.style.top = (e.clientY - rect.top - 70) + 'px';
-  };
-  canvas.onmouseleave = () => { tooltip.style.display = 'none'; };
+    tooltip.style.left = Math.min(clientX - rect.left + 12, W - 160) + 'px';
+    tooltip.style.top = (clientY - rect.top - 70) + 'px';
+  }
+
+  const tooltip = document.getElementById('btTooltip');
+  canvas.onmousemove = e => showCrosshair(e.clientX, e.clientY);
+  canvas.onmouseleave = () => { tooltip.style.display = 'none'; animFrame = totalFrames; animateChart(); };
+  canvas.ontouchmove = e => { e.preventDefault(); const t = e.touches[0]; showCrosshair(t.clientX, t.clientY); };
+  canvas.ontouchend = () => { tooltip.style.display = 'none'; animFrame = totalFrames; animateChart(); };
 }
 
 function renderBtTrades(trades) {
@@ -1038,7 +1255,35 @@ document.addEventListener('keydown',e=>{
   const tabs=['dashboard','universe','recommend','portfolio','filters','backtest'];
   if(e.key>='1'&&e.key<='6'){e.preventDefault();switchTab(tabs[parseInt(e.key)-1])}
   if(e.key==='r'||e.key==='R'){e.preventDefault();refreshAll()}
+  if(e.key==='?'){e.preventDefault();document.getElementById('shortcutsOverlay').classList.add('show')}
+  if(e.key==='Escape'){
+    document.getElementById('shortcutsOverlay').classList.remove('show');
+    closeModal();
+  }
 });
+
+/* ====== Theme Toggle ====== */
+function toggleTheme() {
+  const html = document.documentElement;
+  const isLight = html.getAttribute('data-theme') === 'light';
+  const newTheme = isLight ? 'dark' : 'light';
+  html.setAttribute('data-theme', newTheme);
+  localStorage.setItem('q_theme', newTheme);
+  document.getElementById('themeBtn').textContent = isLight ? '☀' : '☾';
+}
+
+/* ====== State Restore ====== */
+(function restoreState(){
+  const savedSort = sessionStorage.getItem('q_sortCol');
+  if (savedSort) { _sortCol = savedSort; _sortAsc = sessionStorage.getItem('q_sortAsc') !== 'false'; }
+  const savedTab = sessionStorage.getItem('q_tab');
+  if (savedTab) switchTab(savedTab);
+  const savedTheme = localStorage.getItem('q_theme');
+  if (savedTheme) {
+    document.documentElement.setAttribute('data-theme', savedTheme);
+    if (savedTheme === 'light') document.getElementById('themeBtn').textContent = '☾';
+  }
+})();
 
 /* ====== Init ====== */
 async function refreshAll(){
