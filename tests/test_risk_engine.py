@@ -3,13 +3,13 @@
 import pytest
 import pandas as pd
 
-from quantified.risk.engine import RiskEngine
-from quantified.risk.protocol import RiskViolation
-from quantified.risk.rules.position_limit import MaxPositionRule
-from quantified.risk.rules.stop_loss import StopLossRule
-from quantified.risk.rules.drawdown import MaxDrawdownRule
-from quantified.risk.rules.liquidity import LiquidityRule
-from quantified.strategy.protocol import Signal
+from vertexquant.risk.engine import RiskEngine
+from vertexquant.risk.protocol import RiskViolation
+from vertexquant.risk.rules.position_limit import MaxPositionRule
+from vertexquant.risk.rules.stop_loss import StopLossRule
+from vertexquant.risk.rules.drawdown import MaxDrawdownRule
+from vertexquant.risk.rules.liquidity import LiquidityRule
+from vertexquant.strategy.protocol import Signal
 
 
 class MockPortfolio:
@@ -146,26 +146,26 @@ class TestRiskEngine:
 
 class TestVar:
     def test_var_historical(self):
-        from quantified.risk.var import var_historical
+        from vertexquant.risk.var import var_historical
 
         returns = [-0.05, -0.03, -0.01, 0.01, 0.02, 0.03, 0.05, 0.08, 0.10, 0.15]
         var = var_historical(returns, 0.95)
         assert var > 0
 
     def test_var_parametric(self):
-        from quantified.risk.var import var_parametric
+        from vertexquant.risk.var import var_parametric
 
         var = var_parametric(0.001, 0.02, 0.95)
         assert var > 0
 
     def test_var_monte_carlo(self):
-        from quantified.risk.var import var_monte_carlo
+        from vertexquant.risk.var import var_monte_carlo
 
         var = var_monte_carlo(0.001, 0.02, 0.95, n_simulations=10000, seed=42)
         assert var > 0
 
     def test_cvar_historical(self):
-        from quantified.risk.var import cvar_historical
+        from vertexquant.risk.var import cvar_historical
 
         returns = [-0.05, -0.03, -0.01, 0.01, 0.02, 0.03, 0.05, 0.08, 0.10, 0.15]
         cvar = cvar_historical(returns, 0.95)
@@ -174,7 +174,7 @@ class TestVar:
 
 class TestStressTest:
     def test_run_stress_test(self):
-        from quantified.risk.stress_test import run_stress_test, StressScenario
+        from vertexquant.risk.stress_test import run_stress_test, StressScenario
 
         portfolio = MockPortfolio(
             holdings=[MockHolding("123001", 100.0, 1000)]

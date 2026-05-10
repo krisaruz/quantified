@@ -2,9 +2,9 @@
 
 import pytest
 
-from quantified.analytics.engine import RiskAdjustedMetrics
-from quantified.analytics.drawdown import DrawdownStats
-from quantified.analytics.report import HoldingPerformance, ReportGenerator
+from vertexquant.analytics.engine import RiskAdjustedMetrics
+from vertexquant.analytics.drawdown import DrawdownStats
+from vertexquant.analytics.report import HoldingPerformance, ReportGenerator
 
 
 @pytest.fixture

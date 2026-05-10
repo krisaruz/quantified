@@ -6,18 +6,18 @@ from unittest.mock import MagicMock, patch
 import pandas as pd
 import pytest
 
-from quantified.config import AppConfig
+from vertexquant.config import AppConfig
 
 
 class TestBuildUniverse:
     """测试 build_universe 函数"""
 
-    @patch("quantified.universe.BondDaily")
-    @patch("quantified.universe.StockDaily")
-    @patch("quantified.universe.StockBasic")
-    @patch("quantified.universe.BondBasic")
+    @patch("vertexquant.universe.BondDaily")
+    @patch("vertexquant.universe.StockDaily")
+    @patch("vertexquant.universe.StockBasic")
+    @patch("vertexquant.universe.BondBasic")
     def test_returns_empty_when_no_data(self, mock_bb, mock_sb, mock_sd, mock_bd):
-        from quantified.universe import build_universe
+        from vertexquant.universe import build_universe
 
         session = MagicMock()
         session.query.return_value.join.return_value.outerjoin.return_value.outerjoin.return_value.all.return_value = []
@@ -25,12 +25,12 @@ class TestBuildUniverse:
         result = build_universe(session, "2025-06-01")
         assert result.empty
 
-    @patch("quantified.universe.BondDaily")
-    @patch("quantified.universe.StockDaily")
-    @patch("quantified.universe.StockBasic")
-    @patch("quantified.universe.BondBasic")
+    @patch("vertexquant.universe.BondDaily")
+    @patch("vertexquant.universe.StockDaily")
+    @patch("vertexquant.universe.StockBasic")
+    @patch("vertexquant.universe.BondBasic")
     def test_computes_derived_metrics(self, mock_bb, mock_sb, mock_sd, mock_bd):
-        from quantified.universe import build_universe
+        from vertexquant.universe import build_universe
 
         session = MagicMock()
         rows = [
@@ -45,12 +45,12 @@ class TestBuildUniverse:
         assert df.iloc[0]["conversion_value"] == pytest.approx(150.0, rel=1e-2)
         assert bool(df.iloc[0]["trade_available"]) is True
 
-    @patch("quantified.universe.BondDaily")
-    @patch("quantified.universe.StockDaily")
-    @patch("quantified.universe.StockBasic")
-    @patch("quantified.universe.BondBasic")
+    @patch("vertexquant.universe.BondDaily")
+    @patch("vertexquant.universe.StockDaily")
+    @patch("vertexquant.universe.StockBasic")
+    @patch("vertexquant.universe.BondBasic")
     def test_trade_available_false_when_zero_volume(self, mock_bb, mock_sb, mock_sd, mock_bd):
-        from quantified.universe import build_universe
+        from vertexquant.universe import build_universe
 
         session = MagicMock()
         rows = [
@@ -66,12 +66,12 @@ class TestBuildUniverse:
 class TestBuildFilteredRanked:
     """测试 build_filtered_ranked"""
 
-    @patch("quantified.universe.BondDaily")
-    @patch("quantified.universe.StockDaily")
-    @patch("quantified.universe.StockBasic")
-    @patch("quantified.universe.BondBasic")
+    @patch("vertexquant.universe.BondDaily")
+    @patch("vertexquant.universe.StockDaily")
+    @patch("vertexquant.universe.StockBasic")
+    @patch("vertexquant.universe.BondBasic")
     def test_returns_sorted_by_composite_score(self, mock_bb, mock_sb, mock_sd, mock_bd):
-        from quantified.universe import build_filtered_ranked
+        from vertexquant.universe import build_filtered_ranked
 
         session = MagicMock()
         rows = [
@@ -94,12 +94,12 @@ class TestBuildFilteredRanked:
         if len(filtered) > 1:
             assert filtered.iloc[0]["composite_score"] <= filtered.iloc[1]["composite_score"]
 
-    @patch("quantified.universe.BondDaily")
-    @patch("quantified.universe.StockDaily")
-    @patch("quantified.universe.StockBasic")
-    @patch("quantified.universe.BondBasic")
+    @patch("vertexquant.universe.BondDaily")
+    @patch("vertexquant.universe.StockDaily")
+    @patch("vertexquant.universe.StockBasic")
+    @patch("vertexquant.universe.BondBasic")
     def test_risk_level_assigned(self, mock_bb, mock_sb, mock_sd, mock_bd):
-        from quantified.universe import build_filtered_ranked
+        from vertexquant.universe import build_filtered_ranked
 
         session = MagicMock()
         rows = [
@@ -115,13 +115,13 @@ class TestBuildFilteredRanked:
         assert not filtered.empty
         assert filtered.iloc[0]["risk_level"] in ("low", "medium", "high")
 
-    @patch("quantified.universe.BondDaily")
-    @patch("quantified.universe.StockDaily")
-    @patch("quantified.universe.StockBasic")
-    @patch("quantified.universe.BondBasic")
+    @patch("vertexquant.universe.BondDaily")
+    @patch("vertexquant.universe.StockDaily")
+    @patch("vertexquant.universe.StockBasic")
+    @patch("vertexquant.universe.BondBasic")
     def test_aaa_ranks_higher_than_aa_minus(self, mock_bb, mock_sb, mock_sd, mock_bd):
         """AAA 评级转债综合评分应低于 AA- 评级（同等条件下）"""
-        from quantified.universe import build_filtered_ranked
+        from vertexquant.universe import build_filtered_ranked
 
         session = MagicMock()
         rows = [

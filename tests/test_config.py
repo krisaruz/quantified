@@ -5,7 +5,7 @@ from pathlib import Path
 
 import yaml
 
-from quantified.config import AppConfig, load_config, rating_ge
+from vertexquant.config import AppConfig, load_config, rating_ge
 
 
 class TestLoadConfig:

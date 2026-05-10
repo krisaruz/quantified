@@ -6,15 +6,15 @@ from pathlib import Path
 
 import pytest
 
-from quantified.portfolio_manager.manager import PortfolioManager
-from quantified.portfolio_manager.snapshot import SnapshotManager
-from quantified.portfolio_manager.comparison import PortfolioComparator
-from quantified.portfolio_manager.models import (
+from vertexquant.portfolio_manager.manager import PortfolioManager
+from vertexquant.portfolio_manager.snapshot import SnapshotManager
+from vertexquant.portfolio_manager.comparison import PortfolioComparator
+from vertexquant.portfolio_manager.models import (
     HoldingSnapshot,
     PortfolioSnapshot,
     PortfolioSummary,
 )
-from quantified.portfolio_manager.templates import (
+from vertexquant.portfolio_manager.templates import (
     BUILTIN_TEMPLATES,
     apply_template,
     get_template,

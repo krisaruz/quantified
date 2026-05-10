@@ -5,8 +5,8 @@ import datetime
 import pandas as pd
 import pytest
 
-from quantified.config import AppConfig
-from quantified.scoring import (
+from vertexquant.config import AppConfig
+from vertexquant.scoring import (
     _bond_floor_bonus,
     _credit_penalty,
     _maturity_penalty,

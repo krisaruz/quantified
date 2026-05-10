@@ -3,7 +3,7 @@
 import json
 from pathlib import Path
 
-from quantified.portfolio import Holding, Portfolio, load_portfolio, save_portfolio
+from vertexquant.portfolio import Holding, Portfolio, load_portfolio, save_portfolio
 
 
 class TestPortfolio:

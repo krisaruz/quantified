@@ -7,8 +7,8 @@ from unittest.mock import MagicMock, patch
 import pandas as pd
 import pytest
 
-from quantified.fetcher.akshare_impl import AkShareFetcher
-from quantified.fetcher.protocol import DataFetchError, IDataFetcher
+from vertexquant.fetcher.akshare_impl import AkShareFetcher
+from vertexquant.fetcher.protocol import DataFetchError, IDataFetcher
 
 
 class TestProtocolCompliance:
@@ -19,7 +19,7 @@ class TestProtocolCompliance:
 
 
 class TestColumnRenaming:
-    @patch("quantified.fetcher.akshare_impl.ak", create=True)
+    @patch("vertexquant.fetcher.akshare_impl.ak", create=True)
     def test_bond_list_renames_chinese_columns(self, mock_ak):
         """中文列名被正确映射为英文"""
         mock_ak.bond_cb_index_jsl = MagicMock(return_value=pd.DataFrame({
@@ -34,7 +34,7 @@ class TestColumnRenaming:
             "债券评级": ["AA"],
         }))
 
-        with patch("quantified.fetcher.akshare_impl._safe_akshare_call") as mock_call:
+        with patch("vertexquant.fetcher.akshare_impl._safe_akshare_call") as mock_call:
             mock_call.return_value = mock_ak.bond_cb_index_jsl()
             fetcher = AkShareFetcher()
             df = fetcher.fetch_bond_list()
@@ -49,7 +49,7 @@ class TestExceptionHandling:
     def test_network_error_raises_data_fetch_error(self):
         """两个 API 均失败时，fetch_bond_daily 返回空 DataFrame（优雅降级）"""
         with patch(
-            "quantified.fetcher.akshare_impl._safe_akshare_call",
+            "vertexquant.fetcher.akshare_impl._safe_akshare_call",
             side_effect=DataFetchError("网络超时"),
         ):
             fetcher = AkShareFetcher()
@@ -60,7 +60,7 @@ class TestExceptionHandling:
     def test_network_error_on_stock_daily_raises(self):
         """stock_daily 网络异常仍抛出 DataFetchError"""
         with patch(
-            "quantified.fetcher.akshare_impl._safe_akshare_call",
+            "vertexquant.fetcher.akshare_impl._safe_akshare_call",
             side_effect=DataFetchError("网络超时"),
         ):
             fetcher = AkShareFetcher()
@@ -70,7 +70,7 @@ class TestExceptionHandling:
     def test_empty_return_is_not_exception(self):
         """空数据返回空 DataFrame，不抛异常"""
         with patch(
-            "quantified.fetcher.akshare_impl._safe_akshare_call",
+            "vertexquant.fetcher.akshare_impl._safe_akshare_call",
             return_value=pd.DataFrame(),
         ):
             fetcher = AkShareFetcher()

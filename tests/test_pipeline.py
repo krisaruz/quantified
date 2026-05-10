@@ -3,17 +3,17 @@
 import pytest
 import pandas as pd
 
-from quantified.pipeline.quality import DataQualityChecker, QualityCheck, QualityReport
-from quantified.pipeline.sync_state import (
+from vertexquant.pipeline.quality import DataQualityChecker, QualityCheck, QualityReport
+from vertexquant.pipeline.sync_state import (
     InvalidSyncStateError,
     SyncError,
     SyncStateMachine,
     SyncStatus,
 )
-from quantified.pipeline.sync_queue import SyncTask, SyncTaskQueue
-from quantified.pipeline.retry import RetryPolicy
-from quantified.pipeline.data_source import DataSourceManager
-from quantified.pipeline.lineage import LineageTracker
+from vertexquant.pipeline.sync_queue import SyncTask, SyncTaskQueue
+from vertexquant.pipeline.retry import RetryPolicy
+from vertexquant.pipeline.data_source import DataSourceManager
+from vertexquant.pipeline.lineage import LineageTracker
 
 
 # ─────────────── DataQualityChecker ───────────────
@@ -255,7 +255,7 @@ class TestDataSourceManager:
 
     def test_fallback_to_second(self):
         from unittest.mock import MagicMock
-        from quantified.fetcher.protocol import DataFetchError
+        from vertexquant.fetcher.protocol import DataFetchError
 
         s1 = MagicMock()
         s1.fetch_bond_list.side_effect = DataFetchError("timeout")
@@ -271,7 +271,7 @@ class TestDataSourceManager:
 
     def test_all_fail(self):
         from unittest.mock import MagicMock
-        from quantified.fetcher.protocol import DataFetchError
+        from vertexquant.fetcher.protocol import DataFetchError
 
         s1 = MagicMock()
         s1.fetch_bond_list.side_effect = DataFetchError("fail1")

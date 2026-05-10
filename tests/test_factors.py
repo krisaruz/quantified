@@ -6,9 +6,9 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from quantified.factors.value import DoubleLowFactor, PureBondPremiumFactor
-from quantified.factors.quality import CreditScoreFactor, MaturityScoreFactor
-from quantified.factors.technical import Volatility20dFactor
+from vertexquant.factors.value import DoubleLowFactor, PureBondPremiumFactor
+from vertexquant.factors.quality import CreditScoreFactor, MaturityScoreFactor
+from vertexquant.factors.technical import Volatility20dFactor
 
 
 class TestDoubleLowFactor:

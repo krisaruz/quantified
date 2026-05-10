@@ -5,16 +5,16 @@ from types import SimpleNamespace
 
 import pytest
 
-from quantified.monitoring.alert_rules import (
+from vertexquant.monitoring.alert_rules import (
     ConcentrationAlert,
     DataFreshnessAlert,
     DrawdownAlert,
     PnLAlert,
 )
-from quantified.monitoring.engine import MonitorEngine
-from quantified.monitoring.health import HealthScore
-from quantified.monitoring.models import Alert, MonitorContext
-from quantified.monitoring.notifiers import LogNotifier, CompositeNotifier
+from vertexquant.monitoring.engine import MonitorEngine
+from vertexquant.monitoring.health import HealthScore
+from vertexquant.monitoring.models import Alert, MonitorContext
+from vertexquant.monitoring.notifiers import LogNotifier, CompositeNotifier
 
 
 def _make_snapshots(values: list[float]):

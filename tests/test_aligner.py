@@ -9,10 +9,10 @@ import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
 
-from quantified.aligner.core import DataAligner
-from quantified.models.base import Base
-from quantified.models.bond import BondBasic, BondDaily, BondStatus, ConversionPriceHistory
-from quantified.models.stock import StockBasic, StockDaily
+from vertexquant.aligner.core import DataAligner
+from vertexquant.models.base import Base
+from vertexquant.models.bond import BondBasic, BondDaily, BondStatus, ConversionPriceHistory
+from vertexquant.models.stock import StockBasic, StockDaily
 
 
 @pytest.fixture()

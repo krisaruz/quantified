@@ -2,7 +2,7 @@
 
 import pytest
 
-from quantified.analytics.benchmark import BenchmarkComparison, BenchmarkManager
+from vertexquant.analytics.benchmark import BenchmarkComparison, BenchmarkManager
 
 
 class TestBenchmarkManager:

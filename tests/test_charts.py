@@ -2,7 +2,7 @@
 
 import pytest
 
-from quantified.analytics.charts import ChartData
+from vertexquant.analytics.charts import ChartData
 
 
 class TestEquityCurve:

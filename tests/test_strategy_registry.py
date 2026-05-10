@@ -3,9 +3,9 @@
 import pytest
 import pandas as pd
 
-from quantified.strategy.registry import StrategyRegistry
-from quantified.strategy.factor_registry import FactorRegistry
-from quantified.strategy.protocol import Signal, StrategyContext
+from vertexquant.strategy.registry import StrategyRegistry
+from vertexquant.strategy.factor_registry import FactorRegistry
+from vertexquant.strategy.protocol import Signal, StrategyContext
 
 
 @pytest.fixture(autouse=True)

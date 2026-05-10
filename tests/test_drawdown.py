@@ -2,8 +2,8 @@
 
 import pytest
 
-from quantified.analytics.drawdown import DrawdownAnalyzer, DrawdownStats, UnderwaterPoint
-from quantified.analytics.engine import DrawdownPeriod
+from vertexquant.analytics.drawdown import DrawdownAnalyzer, DrawdownStats, UnderwaterPoint
+from vertexquant.analytics.engine import DrawdownPeriod
 
 
 class TestUnderwaterCurve:

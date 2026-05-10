@@ -4,12 +4,12 @@ import math
 
 import pytest
 
-from quantified.analytics.engine import (
+from vertexquant.analytics.engine import (
     AnalyticsEngine,
     DrawdownPeriod,
     RiskAdjustedMetrics,
 )
-from quantified.backtest.engine import BacktestResult, DailySnapshot
+from vertexquant.backtest.engine import BacktestResult, DailySnapshot
 
 
 def _make_snapshots(values: list[float], start_date: str = "2024-01-02") -> list[DailySnapshot]:

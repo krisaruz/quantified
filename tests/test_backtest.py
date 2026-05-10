@@ -6,9 +6,9 @@ import datetime
 
 import pytest
 
-from quantified.backtest.account import Position, VirtualAccount, TradeRecord
-from quantified.backtest.stats import compute_stats, PerformanceStats
-from quantified.backtest.engine import BacktestResult, DailySnapshot
+from vertexquant.backtest.account import Position, VirtualAccount, TradeRecord
+from vertexquant.backtest.stats import compute_stats, PerformanceStats
+from vertexquant.backtest.engine import BacktestResult, DailySnapshot
 
 
 class TestPosition:

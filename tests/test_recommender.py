@@ -5,9 +5,9 @@ import datetime
 import pandas as pd
 import pytest
 
-from quantified.config import AppConfig
-from quantified.portfolio import Holding, Portfolio
-from quantified.recommender import (
+from vertexquant.config import AppConfig
+from vertexquant.portfolio import Holding, Portfolio
+from vertexquant.recommender import (
     Recommender,
     _build_summary,
     calc_fee,
@@ -304,7 +304,7 @@ class TestNaturalLanguageReasons:
 
 class TestBuildSummary:
     def test_paused(self):
-        from quantified.recommender import Action
+        from vertexquant.recommender import Action
         summary = _build_summary({
             "actions": [], "is_rebalance_day": True,
             "drawdown_paused": True, "drawdown": -0.12,
@@ -320,7 +320,7 @@ class TestBuildSummary:
         assert "不是调仓日" in summary
 
     def test_rebalance_with_actions(self):
-        from quantified.recommender import Action
+        from vertexquant.recommender import Action
         actions = [
             Action(type="sell", cb_code="A", cb_name="A", price=100, reason="test"),
             Action(type="buy", cb_code="B", cb_name="B", price=100, reason="test"),

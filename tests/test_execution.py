@@ -4,14 +4,14 @@ from datetime import datetime, timedelta
 
 import pytest
 
-from quantified.execution.models import Fill, MarketBar, Order
-from quantified.execution.order_manager import OrderManager
-from quantified.execution.slippage import (
+from vertexquant.execution.models import Fill, MarketBar, Order
+from vertexquant.execution.order_manager import OrderManager
+from vertexquant.execution.slippage import (
     FixedSlippageModel,
     VolumeBasedSlippageModel,
     VolatilitySlippageModel,
 )
-from quantified.execution.tca import TCAResult, TransactionCostAnalyzer
+from vertexquant.execution.tca import TCAResult, TransactionCostAnalyzer
 
 
 # ─────────────── Slippage Models ───────────────

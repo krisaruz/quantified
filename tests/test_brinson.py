@@ -2,7 +2,7 @@
 
 import pytest
 
-from quantified.analytics.attribution.brinson import (
+from vertexquant.analytics.attribution.brinson import (
     BrinsonAttribution,
     BrinsonResult,
     PeriodAttribution,

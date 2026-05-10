@@ -4,10 +4,10 @@ import time
 
 import pytest
 
-from quantified.api_gateway.auth import APIKeyManager
-from quantified.api_gateway.pagination import PageRequest, paginate_list
-from quantified.api_gateway.rate_limiter import RateLimiter, get_rate_limit
-from quantified.api_gateway.response import (
+from vertexquant.api_gateway.auth import APIKeyManager
+from vertexquant.api_gateway.pagination import PageRequest, paginate_list
+from vertexquant.api_gateway.rate_limiter import RateLimiter, get_rate_limit
+from vertexquant.api_gateway.response import (
     compute_pagination,
     error_response,
     not_found_error,

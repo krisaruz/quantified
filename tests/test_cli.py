@@ -2,7 +2,7 @@
 
 from click.testing import CliRunner
 
-from quantified.cli import main
+from vertexquant.cli import main
 
 
 class TestCLIImports:

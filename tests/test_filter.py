@@ -4,8 +4,8 @@ import datetime
 
 import pandas as pd
 
-from quantified.config import AppConfig
-from quantified.filter import (
+from vertexquant.config import AppConfig
+from vertexquant.filter import (
     FilterChain,
     filter_credit_rating,
     filter_delisted,

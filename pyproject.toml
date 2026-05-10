@@ -3,7 +3,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "quantified"
+name = "vertexquant"
 version = "0.1.0"
 description = "可转债+股票双标的量化回测与模拟交易系统"
 requires-python = ">=3.11"
@@ -27,10 +27,10 @@ dev = [
 ]
 
 [project.scripts]
-quantified = "quantified.cli:main"
+vertexquant = "vertexquant.cli:main"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/quantified"]
+packages = ["src/vertexquant"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

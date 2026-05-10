@@ -3,8 +3,8 @@
 import pandas as pd
 import pytest
 
-from quantified.strategy.registry import StrategyRegistry
-from quantified.strategy.protocol import Signal, StrategyContext
+from vertexquant.strategy.registry import StrategyRegistry
+from vertexquant.strategy.protocol import Signal, StrategyContext
 
 
 @pytest.fixture(autouse=True)
@@ -77,7 +77,7 @@ def mock_portfolio():
 
 class TestCompositeStrategy:
     def test_weighted_average_merge(self, sample_universe, mock_portfolio):
-        from quantified.strategy.composite_strategy import CompositeStrategy
+        from vertexquant.strategy.composite_strategy import CompositeStrategy
 
         strategy = CompositeStrategy(
             strategies=[
@@ -102,7 +102,7 @@ class TestCompositeStrategy:
         assert sig_123001.direction == "sell"
 
     def test_voting_merge(self, sample_universe, mock_portfolio):
-        from quantified.strategy.composite_strategy import CompositeStrategy
+        from vertexquant.strategy.composite_strategy import CompositeStrategy
 
         strategy = CompositeStrategy(
             strategies=[
@@ -127,7 +127,7 @@ class TestCompositeStrategy:
         assert len(signals) == 0
 
     def test_get_parameters(self, sample_universe, mock_portfolio):
-        from quantified.strategy.composite_strategy import CompositeStrategy
+        from vertexquant.strategy.composite_strategy import CompositeStrategy
 
         strategy = CompositeStrategy(
             strategies=[
