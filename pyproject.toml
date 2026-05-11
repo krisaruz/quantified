@@ -30,14 +30,14 @@ dev = [
 vertexquant = "vertexquant.cli:main"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/vertexquant"]
+packages = ["vertexquant"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-pythonpath = ["src"]
+pythonpath = ["."]
 
 [tool.ruff]
-src = ["src"]
+src = ["."]
 line-length = 100
 
 [tool.black]

@@ -27,7 +27,7 @@ def main():
 @click.option("--skip-stock-history", is_flag=True, help="跳过正股历史日线")
 def sync(full: bool, skip_stock_history: bool):
     """同步最新行情数据"""
-    script = Path(__file__).resolve().parents[2] / "scripts" / "sync_data.py"
+    script = Path(__file__).resolve().parents[1] / "scripts" / "sync_data.py"
     if not script.exists():
         click.echo(f"错误: 同步脚本不存在 ({script})")
         return
@@ -163,7 +163,7 @@ def filter_check():
 @click.option("--only-stocks", is_flag=True, help="只回填正股日线")
 def backfill(start: str, end: str | None, skip_conv_price: bool, only_bonds: bool, only_stocks: bool):
     """回填历史数据（回测前需要先运行）"""
-    script = Path(__file__).resolve().parents[2] / "scripts" / "backfill_history.py"
+    script = Path(__file__).resolve().parents[1] / "scripts" / "backfill_history.py"
     if not script.exists():
         click.echo(f"错误: 回填脚本不存在 ({script})")
         return

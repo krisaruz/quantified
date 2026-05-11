@@ -12,7 +12,7 @@ from typing import Optional
 import yaml
 from pydantic import BaseModel, Field
 
-DEFAULT_CONFIG_PATH = Path(__file__).resolve().parents[2] / "config.yaml"
+DEFAULT_CONFIG_PATH = Path(__file__).resolve().parents[1] / "config.yaml"
 
 # 信用评级排序（越高越好）
 RATING_ORDER = ["AAA", "AA+", "AA", "AA-", "A+", "A", "A-", "BBB+", "BBB", "BBB-"]

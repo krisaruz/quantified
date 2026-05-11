@@ -10,7 +10,7 @@ from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
-DEFAULT_VERSIONS_PATH = Path(__file__).resolve().parents[2] / "data" / "strategy_versions.jsonl"
+DEFAULT_VERSIONS_PATH = Path(__file__).resolve().parents[1] / "data" / "strategy_versions.jsonl"
 
 
 @dataclass

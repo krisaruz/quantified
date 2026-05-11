@@ -17,8 +17,8 @@ from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
-DEFAULT_PORTFOLIO_PATH = Path(__file__).resolve().parents[2] / "data" / "portfolio.json"
-DEFAULT_HISTORY_PATH = Path(__file__).resolve().parents[2] / "data" / "portfolio_history.jsonl"
+DEFAULT_PORTFOLIO_PATH = Path(__file__).resolve().parents[1] / "data" / "portfolio.json"
+DEFAULT_HISTORY_PATH = Path(__file__).resolve().parents[1] / "data" / "portfolio_history.jsonl"
 
 
 @dataclass
